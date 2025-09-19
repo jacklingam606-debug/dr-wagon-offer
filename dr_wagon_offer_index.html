@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DR Wagon — Surprise Offer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #071018;
+      --card: #071821;
+      --gold: #d4af37;
+      --muted: #9aa3ad;
+      --glass: rgba(255,255,255,0.03);
+    }
+    *{box-sizing:border-box;font-family:'Poppins',system-ui,Segoe UI,Roboto,Arial;color:#fff}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,var(--bg),#041018);display:flex;align-items:center;justify-content:center;padding:20px}
+    .wrap{max-width:640px;width:100%}
+    header{display:flex;gap:12px;align-items:center;margin-bottom:18px}
+    header img{height:56px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:26px;border-radius:14px;box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+    h1{margin:0 0 8px;font-size:20px}
+    p.lead{margin:0 0 18px;color:var(--muted)}
+    .btn{display:inline-block;padding:12px 18px;border-radius:10px;background:linear-gradient(90deg,var(--gold),#ffc85a);color:#071018;font-weight:700;border:none;font-size:15px;cursor:pointer;text-decoration:none;box-shadow:0 6px 18px rgba(212,175,55,0.18)}
+    .small{font-size:13px;color:var(--muted);margin-top:12px}
+    footer{margin-top:14px;color:var(--muted);font-size:12px;text-align:center}
+
+    /* modal */
+    .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,15,0.65);backdrop-filter: blur(3px);padding:20px;z-index:999;opacity:0;pointer-events:none;transition:opacity .22s}
+    .modal.show{opacity:1;pointer-events:auto}
+    .modal-card{width:100%;max-width:680px;background:linear-gradient(180deg,#081018,#071017);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.04)}
+    .close{float:right;background:transparent;border:0;color:#9fb1c1;font-size:22px;cursor:pointer}
+    .media{display:flex;flex-direction:column;gap:12px;align-items:center}
+    .media img{width:100%;max-width:560px;border-radius:10px;object-fit:cover}
+    .offer-area{width:100%;display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:8px}
+    .offer-text{flex:1}
+    .offer-code{background:var(--glass);padding:10px;border-radius:10px;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .code{font-weight:700;letter-spacing:1px}
+    .copy{background:#0c1418;border:0;padding:8px 10px;border-radius:8px;color:var(--gold);cursor:pointer}
+    .muted-tiny{font-size:12px;color:var(--muted)}
+
+    @media (max-width:560px){.media img{max-width:100%}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img src="images/logo.png" alt="DR Wagon logo" />
+      <div>
+        <div style="font-weight:700">DR Wagon</div>
+        <div style="font-size:12px;color:var(--muted)">Street-style bites • Surprise offers</div>
+      </div>
+    </header>
+
+    <div class="card" role="main" aria-labelledby="main-title">
+      <h1 id="main-title">You found a DR Wagon surprise 🎉</h1>
+      <p class="lead">Tap the button to reveal a special offer — sometimes you’ll also get a cheeky meme. Good luck!</p>
+
+      <button id="claimBtn" class="btn" aria-haspopup="dialog">Tap to reveal your offer</button>
+
+      <div class="small muted-tiny">Limited time only • One redemption per customer</div>
+    </div>
+
+    <footer>Present this page at your nearest DR Wagon stall. T&Cs apply.</footer>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-card">
+      <button id="closeBtn" class="close" aria-label="Close">✕</button>
+      <div class="media">
+        <img id="displayImg" src="images/placeholder.jpg" alt="Surprise image" loading="lazy">
+
+        <div class="offer-area" id="offerArea" style="display:none">
+          <div class="offer-text">
+            <div class="muted-tiny">Offer</div>
+            <div class="code" id="offerTitle">FLAT 20% OFF</div>
+            <div class="muted-tiny" id="offerExpiry">Expires: 31 Oct 2025</div>
+          </div>
+
+          <div style="text-align:right">
+            <div class="muted-tiny">Code</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="code" id="coupon">DRW-LUCKY20</div>
+              <button class="copy" id="copyBtn">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="memeNote" class="muted-tiny" style="display:none;text-align:center">You got the lucky meme! Show this at the counter for a surprise (or just enjoy the laugh 😂).</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    /******************************************************************
+     * CONFIGURATION
+     * - Edit the `ITEMS` array below to add your images + offers
+     * - Each item: { id, weight, image, title, coupon, expires }
+     * - image can be a relative path (images/...) or an absolute URL
+     ******************************************************************/
+
+    const ITEMS = [
+      {
+        id: 'offer-1',         // unique id (used for force testing)
+        weight: 85,            // relative weight (85 = 85% chance if total is 100)
+        image: 'images/offer1.jpg',
+        title: 'FLAT 20% OFF',
+        coupon: 'DRW-LUCKY20',
+        expires: '31 Oct 2025'
+      },
+      {
+        id: 'meme-1',
+        weight: 15,
+        image: 'images/meme1.jpg',
+        title: 'You are the lucky one!',
+        coupon: '',
+        expires: ''
+      }
+    ];
+
+    // If you want the same visitor to see the same pick repeatedly (for N hours):
+    const SAME_FOR_HOURS = 24; // set to 0 to always re-randomize per visit
+    const STORAGE_KEY = 'drw_choice_v1';
+
+    // Utility: read query param 'force' to force an item id for testing
+    const params = new URLSearchParams(window.location.search);
+    const forceId = params.get('force'); // e.g. ?force=meme-1 or ?force=offer-1
+
+    // Weighted random pick function
+    function weightedPick(list) {
+      const total = list.reduce((s, it) => s + (it.weight || 1), 0);
+      let r = Math.random() * total;
+      for (let i = 0; i < list.length; i++) {
+        r -= (list[i].weight || 1);
+        if (r <= 0) return i;
+      }
+      return list.length - 1;
+    }
+
+    // load saved choice if within SAME_FOR_HOURS
+    function getSavedChoice() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        if (!obj || !obj.i || !obj.t) return null;
+        if (SAME_FOR_HOURS <= 0) return null;
+        const age = (Date.now() - obj.t) / (1000 * 60 * 60);
+        if (age <= SAME_FOR_HOURS) return obj.i;
+        return null;
+      } catch (e) { return null; }
+    }
+
+    // save choice index
+    function saveChoice(index) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({i: index, t: Date.now()}));
+      } catch (e) {}
+    }
+
+    // choose item index (respects force param and localStorage caching)
+    function chooseIndex() {
+      // force test param (accepts id)
+      if (forceId) {
+        const forced = ITEMS.findIndex(it => it.id === forceId);
+        if (forced !== -1) return forced;
+      }
+
+      const saved = getSavedChoice();
+      if (saved !== null && saved >= 0 && saved < ITEMS.length) return saved;
+
+      const idx = weightedPick(ITEMS);
+      saveChoice(idx);
+      return idx;
+    }
+
+    // UI wiring
+    const claimBtn = document.getElementById('claimBtn');
+    const modal = document.getElementById('modal');
+    const closeBtn = document.getElementById('closeBtn');
+    const displayImg = document.getElementById('displayImg');
+    const offerArea = document.getElementById('offerArea');
+    const offerTitle = document.getElementById('offerTitle');
+    const couponEl = document.getElementById('coupon');
+    const copyBtn = document.getElementById('copyBtn');
+    const offerExpiry = document.getElementById('offerExpiry');
+    const memeNote = document.getElementById('memeNote');
+
+    let pickedIndex = null;
+
+    function openModalWithItem(index) {
+      const it = ITEMS[index] || {};
+      pickedIndex = index;
+      displayImg.src = it.image || 'images/placeholder.jpg';
+      displayImg.alt = it.title || 'Surprise image';
+
+      const hasCoupon = it.coupon && it.coupon.trim().length > 0;
+      if (hasCoupon) {
+        offerArea.style.display = 'flex';
+        offerTitle.textContent = it.title || '';
+        couponEl.textContent = it.coupon || '';
+        offerExpiry.textContent = it.expires ? ('Expires: ' + it.expires) : '';
+        memeNote.style.display = 'none';
+      } else {
+        offerArea.style.display = 'none';
+        memeNote.style.display = 'block';
+      }
+
+      // show modal
+      modal.classList.add('show');
+      modal.setAttribute('aria-hidden', 'false');
+
+      // simple local logging counter (for quick AB insight without external analytics)
+      try {
+        const statKey = 'drw_stats_v1';
+        const raw = localStorage.getItem(statKey); let stats = raw ? JSON.parse(raw) : {};
+        stats[it.id] = (stats[it.id] || 0) + 1;
+        localStorage.setItem(statKey, JSON.stringify(stats));
+      } catch (e) {}
+    }
+
+    claimBtn.addEventListener('click', () => {
+      const idx = chooseIndex();
+      openModalWithItem(idx);
+    });
+
+    closeBtn.addEventListener('click', () => {
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      const it = ITEMS[pickedIndex];
+      if (!it || !it.coupon) return;
+      try {
+        await navigator.clipboard.writeText(it.coupon);
+        copyBtn.textContent = 'Copied';
+        setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1200);
+      } catch (e) {
+        alert('Copy not supported. Please long-press to copy the code.');
+      }
+    });
+
+    // allow tapping outside modal to close (mobile friendly)
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    // Expose a small helper in case you want to debug in console
+    window._DRW = {
+      ITEMS, chooseIndex, weightedPick
+    };
+
+  </script>
+</body>
+</html>
